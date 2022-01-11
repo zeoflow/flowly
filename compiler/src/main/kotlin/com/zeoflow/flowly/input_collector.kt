@@ -2,7 +2,7 @@ package com.zeoflow.flowly
 
 import com.zeoflow.flowly.model.EventMethod
 import com.zeoflow.flowly.model.InputModel
-import com.zeoflow.flowly.model.LifecycleObserverInfo
+import com.zeoflow.flowly.model.FlowlyObserverInfo
 import com.zeoflow.flowly.model.getAdapterName
 import com.google.auto.common.MoreElements
 import com.google.auto.common.MoreTypes
@@ -25,7 +25,7 @@ fun collectAndVerifyInput(
 ): InputModel {
     val validator = Validator(processingEnv)
     val worldCollector = ObserversCollector(processingEnv)
-    val roots = roundEnv.getElementsAnnotatedWith(OnLifecycleEvent::class.java).map { elem ->
+    val roots = roundEnv.getElementsAnnotatedWith(OnFlowlyEvent::class.java).map { elem ->
         if (elem.kind != ElementKind.METHOD) {
             validator.printErrorMessage(ErrorMessages.INVALID_ANNOTATED_ELEMENT, elem)
             null
@@ -51,11 +51,11 @@ class ObserversCollector(processingEnv: ProcessingEnvironment) {
     val typeUtils: Types = processingEnv.typeUtils
     val elementUtils: Elements = processingEnv.elementUtils
     val lifecycleObserverTypeMirror: TypeMirror =
-        elementUtils.getTypeElement(LifecycleObserver::class.java.canonicalName).asType()
+        elementUtils.getTypeElement(FlowlyObserver::class.java.canonicalName).asType()
     val validator = Validator(processingEnv)
-    val observers: MutableMap<TypeElement, LifecycleObserverInfo> = mutableMapOf()
+    val observers: MutableMap<TypeElement, FlowlyObserverInfo> = mutableMapOf()
 
-    fun collect(type: TypeElement): LifecycleObserverInfo? {
+    fun collect(type: TypeElement): FlowlyObserverInfo? {
         if (type in observers) {
             return observers[type]
         }
@@ -80,22 +80,22 @@ class ObserversCollector(processingEnv: ProcessingEnvironment) {
 
     private fun createObserverInfo(
         typeElement: TypeElement,
-        parents: List<LifecycleObserverInfo>
-    ): LifecycleObserverInfo? {
+        parents: List<FlowlyObserverInfo>
+    ): FlowlyObserverInfo? {
         if (!validator.validateClass(typeElement)) {
             return null
         }
         val methods = typeElement.methods().filter { executable ->
-            MoreElements.isAnnotationPresent(executable, OnLifecycleEvent::class.java)
+            MoreElements.isAnnotationPresent(executable, OnFlowlyEvent::class.java)
         }.map { executable ->
-            val onState = executable.getAnnotation(OnLifecycleEvent::class.java)
+            val onState = executable.getAnnotation(OnFlowlyEvent::class.java)
             if (validator.validateMethod(executable, onState.value)) {
                 EventMethod(executable, onState, typeElement)
             } else {
                 null
             }
         }.filterNotNull()
-        return LifecycleObserverInfo(typeElement, methods, parents)
+        return FlowlyObserverInfo(typeElement, methods, parents)
     }
 }
 
@@ -117,7 +117,7 @@ class Validator(val processingEnv: ProcessingEnvironment) {
         return true
     }
 
-    fun validateMethod(method: ExecutableElement, event: Lifecycle.Event): Boolean {
+    fun validateMethod(method: ExecutableElement, event: Flowly.Event): Boolean {
         if (Modifier.PRIVATE in method.modifiers) {
             printErrorMessage(ErrorMessages.INVALID_METHOD_MODIFIER, method)
             return false
@@ -128,13 +128,13 @@ class Validator(val processingEnv: ProcessingEnvironment) {
             return false
         }
 
-        if (params.size == 2 && event != Lifecycle.Event.ON_ANY) {
+        if (params.size == 2 && event != Flowly.Event.ON_ANY) {
             printErrorMessage(ErrorMessages.TOO_MANY_ARGS_NOT_ON_ANY, method)
             return false
         }
 
         if (params.size == 2 && !validateParam(
-                params[1], Lifecycle.Event::class.java,
+                params[1], Flowly.Event::class.java,
                         ErrorMessages.INVALID_SECOND_ARGUMENT
             )
         ) {
@@ -143,7 +143,7 @@ class Validator(val processingEnv: ProcessingEnvironment) {
 
         if (params.size > 0) {
             return validateParam(
-                params[0], LifecycleOwner::class.java,
+                params[0], FlowlyOwner::class.java,
                     ErrorMessages.INVALID_FIRST_ARGUMENT
             )
         }

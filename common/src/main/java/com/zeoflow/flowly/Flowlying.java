@@ -18,7 +18,7 @@ import java.util.Map;
  * @hide
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
-public class Lifecycling {
+public class Flowlying {
 
     private static final int REFLECTIVE_CALLBACK = 1;
     private static final int GENERATED_CALLBACK = 2;
@@ -36,21 +36,21 @@ public class Lifecycling {
     @SuppressWarnings("deprecation")
     @Deprecated
     @NonNull
-    static GenericLifecycleObserver getCallback(final Object object) {
-        final LifecycleEventObserver observer = lifecycleEventObserver(object);
-        return new GenericLifecycleObserver() {
+    static GenericFlowlyObserver getCallback(final Object object) {
+        final FlowlyEventObserver observer = lifecycleEventObserver(object);
+        return new GenericFlowlyObserver() {
             @Override
             public void onStateChanged(
-                    @NonNull LifecycleOwner source,
-                    @NonNull Lifecycle.Event event
+                    @NonNull FlowlyOwner source,
+                    @NonNull Flowly.Event event
             ) {
                 observer.onStateChanged(source, event);
             }
 
             @Override
             public void onStateChanged(
-                    @NonNull LifecycleOwner source,
-                    @NonNull Lifecycle.Event event,
+                    @NonNull FlowlyOwner source,
+                    @NonNull Flowly.Event event,
                     @Nullable Object... args
             ) {
                 observer.onStateChanged(source, event);
@@ -59,19 +59,19 @@ public class Lifecycling {
     }
 
     @NonNull
-    static LifecycleEventObserver lifecycleEventObserver(Object object) {
-        boolean isLifecycleEventObserver = object instanceof LifecycleEventObserver;
-        boolean isFullLifecycleObserver = object instanceof FullLifecycleObserver;
+    static FlowlyEventObserver lifecycleEventObserver(Object object) {
+        boolean isLifecycleEventObserver = object instanceof FlowlyEventObserver;
+        boolean isFullLifecycleObserver = object instanceof FullFlowlyObserver;
         if (isLifecycleEventObserver && isFullLifecycleObserver) {
-            return new FullLifecycleObserverAdapter((FullLifecycleObserver) object,
-                    (LifecycleEventObserver) object);
+            return new FullFlowlyObserverAdapter((FullFlowlyObserver) object,
+                    (FlowlyEventObserver) object);
         }
         if (isFullLifecycleObserver) {
-            return new FullLifecycleObserverAdapter((FullLifecycleObserver) object, null);
+            return new FullFlowlyObserverAdapter((FullFlowlyObserver) object, null);
         }
 
         if (isLifecycleEventObserver) {
-            return (LifecycleEventObserver) object;
+            return (FlowlyEventObserver) object;
         }
 
         final Class<?> klass = object.getClass();
@@ -90,7 +90,7 @@ public class Lifecycling {
             }
             return new CompositeGeneratedAdaptersObserver(adapters);
         }
-        return new ReflectiveGenericLifecycleObserver(object);
+        return new ReflectiveGenericFlowlyObserver(object);
     }
 
     private static GeneratedAdapter createGeneratedAdapter(
@@ -156,7 +156,7 @@ public class Lifecycling {
             return GENERATED_CALLBACK;
         }
 
-        boolean hasLifecycleMethods = ClassesInfoCache.sInstance.hasLifecycleMethods(klass);
+        boolean hasLifecycleMethods = ClassesInfoCache.sInstance.hasFlowlyMethods(klass);
         if (hasLifecycleMethods) {
             return REFLECTIVE_CALLBACK;
         }
@@ -191,7 +191,7 @@ public class Lifecycling {
     }
 
     private static boolean isLifecycleParent(Class<?> klass) {
-        return klass != null && LifecycleObserver.class.isAssignableFrom(klass);
+        return klass != null && FlowlyObserver.class.isAssignableFrom(klass);
     }
 
     /**
@@ -201,6 +201,6 @@ public class Lifecycling {
         return className.replace(".", "_") + "_LifecycleManager";
     }
 
-    private Lifecycling() {
+    private Flowlying() {
     }
 }

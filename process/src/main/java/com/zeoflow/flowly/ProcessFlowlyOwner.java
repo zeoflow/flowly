@@ -15,14 +15,14 @@ import androidx.annotation.VisibleForTesting;
 /**
  * Class that provides flowly for the whole application process.
  * <p>
- * You can consider this LifecycleOwner as the composite of all of your Activities, except that
- * {@link Lifecycle.Event#ON_CREATE} will be dispatched once and {@link Lifecycle.Event#ON_DESTROY}
+ * You can consider this FlowlyOwner as the composite of all of your Activities, except that
+ * {@link Flowly.Event#ON_CREATE} will be dispatched once and {@link Flowly.Event#ON_DESTROY}
  * will never be dispatched. Other flowly events will be dispatched with following rules:
- * ProcessLifecycleOwner will dispatch {@link Lifecycle.Event#ON_START},
- * {@link Lifecycle.Event#ON_RESUME} events, as a first activity moves through these events.
- * {@link Lifecycle.Event#ON_PAUSE}, {@link Lifecycle.Event#ON_STOP}, events will be dispatched with
+ * ProcessFlowlyOwner will dispatch {@link Flowly.Event#ON_START},
+ * {@link Flowly.Event#ON_RESUME} events, as a first activity moves through these events.
+ * {@link Flowly.Event#ON_PAUSE}, {@link Flowly.Event#ON_STOP}, events will be dispatched with
  * a <b>delay</b> after a last activity
- * passed through them. This delay is long enough to guarantee that ProcessLifecycleOwner
+ * passed through them. This delay is long enough to guarantee that ProcessFlowlyOwner
  * won't send any events if activities are destroyed and recreated due to a
  * configuration change.
  *
@@ -32,7 +32,7 @@ import androidx.annotation.VisibleForTesting;
  * events.
  */
 @SuppressWarnings("WeakerAccess")
-public class ProcessLifecycleOwner implements LifecycleOwner {
+public class ProcessFlowlyOwner implements FlowlyOwner {
 
     @VisibleForTesting
     static final long TIMEOUT_MS = 700; //mls
@@ -45,7 +45,7 @@ public class ProcessLifecycleOwner implements LifecycleOwner {
     private boolean mStopSent = true;
 
     private Handler mHandler;
-    private final LifecycleRegistry mRegistry = new LifecycleRegistry(this);
+    private final FlowlyRegistry mRegistry = new FlowlyRegistry(this);
 
     private final Runnable mDelayedPauseRunnable = () -> {
         dispatchPauseIfNeeded();
@@ -69,35 +69,35 @@ public class ProcessLifecycleOwner implements LifecycleOwner {
                 }
             };
 
-    private static final ProcessLifecycleOwner sInstance = new ProcessLifecycleOwner();
+    private static final ProcessFlowlyOwner sInstance = new ProcessFlowlyOwner();
 
     /**
-     * The LifecycleOwner for the whole application process. Note that if your application
+     * The FlowlyOwner for the whole application process. Note that if your application
      * has multiple processes, this provider does not know about other processes.
      *
-     * @return {@link LifecycleOwner} for the whole application.
+     * @return {@link FlowlyOwner} for the whole application.
      */
     @NonNull
-    public static LifecycleOwner get() {
+    public static FlowlyOwner get() {
         return sInstance;
     }
 
     /**
-     * Adds a LifecycleObserver that will be notified when the LifecycleOwner changes
+     * Adds a LifecycleObserver that will be notified when the FlowlyOwner changes
      * state.
      * <p>
-     * The given observer will be brought to the current state of the LifecycleOwner.
-     * For example, if the LifecycleOwner is in {@link Lifecycle.State#STARTED} state, the given observer
-     * will receive {@link Lifecycle.Event#ON_CREATE}, {@link Lifecycle.Event#ON_START} events.
+     * The given observer will be brought to the current state of the FlowlyOwner.
+     * For example, if the FlowlyOwner is in {@link Flowly.State#STARTED} state, the given observer
+     * will receive {@link Flowly.Event#ON_CREATE}, {@link Flowly.Event#ON_START} events.
      *
      * @param observer The observer to notify.
      */
-    public static void addObserver(@NonNull LifecycleObserver observer) {
+    public static void addObserver(@NonNull FlowlyObserver observer) {
         get().getLifecycle().addObserver(observer);
     }
 
     @NonNull
-    public static ProcessLifecycleOwner getInstance() {
+    public static ProcessFlowlyOwner getInstance() {
         return sInstance;
     }
 
@@ -107,17 +107,17 @@ public class ProcessLifecycleOwner implements LifecycleOwner {
 
     public void activityCreated() {
         mRegistry.dispatchEvent(
-                Lifecycle.Event.ON_ACTIVITY_CREATED
+                Flowly.Event.ON_ACTIVITY_CREATED
         );
     }
 
     public void activityStarted() {
         mStartedCounter++;
         if (mStartedCounter == 1 && mStopSent) {
-            mRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START);
+            mRegistry.handleLifecycleEvent(Flowly.Event.ON_START);
             mStopSent = false;
             mRegistry.dispatchEvent(
-                    Lifecycle.Event.ON_ACTIVITY_STARTED
+                    Flowly.Event.ON_ACTIVITY_STARTED
             );
         }
     }
@@ -126,10 +126,10 @@ public class ProcessLifecycleOwner implements LifecycleOwner {
         mResumedCounter++;
         if (mResumedCounter == 1) {
             if (mPauseSent) {
-                mRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
+                mRegistry.handleLifecycleEvent(Flowly.Event.ON_RESUME);
                 mPauseSent = false;
                 mRegistry.dispatchEvent(
-                        Lifecycle.Event.ON_ACTIVITY_RESUMED
+                        Flowly.Event.ON_ACTIVITY_RESUMED
                 );
             } else {
                 mHandler.removeCallbacks(mDelayedPauseRunnable);
@@ -142,7 +142,7 @@ public class ProcessLifecycleOwner implements LifecycleOwner {
         if (mResumedCounter == 0) {
             mHandler.postDelayed(mDelayedPauseRunnable, TIMEOUT_MS);
             mRegistry.dispatchEvent(
-                    Lifecycle.Event.ON_ACTIVITY_PAUSED
+                    Flowly.Event.ON_ACTIVITY_PAUSED
             );
         }
     }
@@ -151,106 +151,106 @@ public class ProcessLifecycleOwner implements LifecycleOwner {
         mStartedCounter--;
         dispatchStopIfNeeded();
         mRegistry.dispatchEvent(
-                Lifecycle.Event.ON_ACTIVITY_STOPPED
+                Flowly.Event.ON_ACTIVITY_STOPPED
         );
     }
 
     public void activityDestroyed() {
         mRegistry.dispatchEvent(
-                Lifecycle.Event.ON_ACTIVITY_DESTROYED
+                Flowly.Event.ON_ACTIVITY_DESTROYED
         );
     }
 
     void dispatchPauseIfNeeded() {
         if (mResumedCounter == 0) {
             mPauseSent = true;
-            mRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
+            mRegistry.handleLifecycleEvent(Flowly.Event.ON_PAUSE);
         }
     }
 
     void dispatchStopIfNeeded() {
         if (mStartedCounter == 0 && mPauseSent) {
-            mRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP);
+            mRegistry.handleLifecycleEvent(Flowly.Event.ON_STOP);
             mStopSent = true;
         }
     }
 
     public void applicationLaunched() {
         mRegistry.dispatchEvent(
-                Lifecycle.Event.ON_APPLICATION_LAUNCHED,
+                Flowly.Event.ON_APPLICATION_LAUNCHED,
                 AppStartUp.getLoadingTime()
         );
     }
 
     public void applicationCreated() {
         mRegistry.dispatchEvent(
-                Lifecycle.Event.ON_APPLICATION_CREATED
+                Flowly.Event.ON_APPLICATION_CREATED
         );
     }
 
     public void applicationStarted() {
         mRegistry.dispatchEvent(
-                Lifecycle.Event.ON_APPLICATION_STARTED
+                Flowly.Event.ON_APPLICATION_STARTED
         );
     }
 
     public void applicationResumed() {
         mRegistry.dispatchEvent(
-                Lifecycle.Event.ON_APPLICATION_RESUMED
+                Flowly.Event.ON_APPLICATION_RESUMED
         );
     }
 
     public void applicationPaused() {
         mRegistry.dispatchEvent(
-                Lifecycle.Event.ON_APPLICATION_PAUSED
+                Flowly.Event.ON_APPLICATION_PAUSED
         );
     }
 
     public void applicationStopped() {
         mRegistry.dispatchEvent(
-                Lifecycle.Event.ON_APPLICATION_STOPPED
+                Flowly.Event.ON_APPLICATION_STOPPED
         );
     }
 
     public void applicationDestroyed() {
         mRegistry.dispatchEvent(
-                Lifecycle.Event.ON_APPLICATION_DESTROYED
+                Flowly.Event.ON_APPLICATION_DESTROYED
         );
     }
 
     public void activityReady() {
         System.out.println("onActivityReady:value");
         mRegistry.dispatchEvent(
-                Lifecycle.Event.ON_ACTIVITY_READY
+                Flowly.Event.ON_ACTIVITY_READY
         );
     }
 
     public void activityLoadTime(long time) {
         mRegistry.dispatchEvent(
-                Lifecycle.Event.ON_ACTIVITY_CREATED,
+                Flowly.Event.ON_ACTIVITY_CREATED,
                 time
         );
     }
 
-    private ProcessLifecycleOwner() {
+    private ProcessFlowlyOwner() {
     }
 
     void attach(Context context) {
         mHandler = new Handler();
-        mRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
+        mRegistry.handleLifecycleEvent(Flowly.Event.ON_CREATE);
         Application app = (Application) context.getApplicationContext();
-        app.registerActivityLifecycleCallbacks(new EmptyActivityLifecycleCallbacks() {
+        app.registerActivityLifecycleCallbacks(new EmptyActivityFlowlyCallbacks() {
             @RequiresApi(29)
             @Override
             public void onActivityPreCreated(@NonNull Activity activity,
                     @Nullable Bundle savedInstanceState) {
-                // We need the ProcessLifecycleOwner to get ON_START and ON_RESUME precisely
-                // before the first activity gets its LifecycleOwner started/resumed.
-                // The activity's LifecycleOwner gets started/resumed via an activity registered
+                // We need the ProcessFlowlyOwner to get ON_START and ON_RESUME precisely
+                // before the first activity gets its FlowlyOwner started/resumed.
+                // The activity's FlowlyOwner gets started/resumed via an activity registered
                 // callback added in onCreate(). By adding our own activity registered callback in
                 // onActivityPreCreated(), we get our callbacks first while still having the
                 // right relative order compared to the Activity's onStart()/onResume() callbacks.
-                activity.registerActivityLifecycleCallbacks(new EmptyActivityLifecycleCallbacks() {
+                activity.registerActivityLifecycleCallbacks(new EmptyActivityFlowlyCallbacks() {
                     @Override
                     public void onActivityPostStarted(@NonNull Activity activity) {
                         activityStarted();
@@ -287,7 +287,7 @@ public class ProcessLifecycleOwner implements LifecycleOwner {
 
     @NonNull
     @Override
-    public Lifecycle getLifecycle() {
+    public Flowly getLifecycle() {
         return mRegistry;
     }
 }

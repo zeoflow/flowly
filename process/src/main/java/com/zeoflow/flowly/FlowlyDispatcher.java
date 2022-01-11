@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * providers related to an activity as soon it is not safe to run a fragment transaction in this
  * activity.
  */
-class LifecycleDispatcher {
+class FlowlyDispatcher {
 
     private static AtomicBoolean sInitialized = new AtomicBoolean(false);
 
@@ -30,7 +30,7 @@ class LifecycleDispatcher {
 
     @SuppressWarnings("WeakerAccess")
     @VisibleForTesting
-    static class DispatcherActivityCallback extends EmptyActivityLifecycleCallbacks {
+    static class DispatcherActivityCallback extends EmptyActivityFlowlyCallbacks {
 
         @Override
         public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -46,6 +46,6 @@ class LifecycleDispatcher {
         }
     }
 
-    private LifecycleDispatcher() {
+    private FlowlyDispatcher() {
     }
 }

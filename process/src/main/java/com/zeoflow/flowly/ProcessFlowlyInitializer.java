@@ -26,21 +26,21 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Initializes {@link ProcessLifecycleOwner} using {@code com.zeoflow.startup}.
+ * Initializes {@link ProcessFlowlyOwner} using {@code com.zeoflow.startup}.
  */
-public final class ProcessLifecycleInitializer implements Initializer<LifecycleOwner> {
+public final class ProcessFlowlyInitializer implements Initializer<FlowlyOwner> {
 
-    public ProcessLifecycleInitializer() {
+    public ProcessFlowlyInitializer() {
         AppStartUp.init();
     }
 
     @NonNull
     @Override
-    public LifecycleOwner create(@NonNull Context context) {
-        LifecycleDispatcher.init(context);
-        ProcessLifecycleOwner.init(context);
+    public FlowlyOwner create(@NonNull Context context) {
+        FlowlyDispatcher.init(context);
+        ProcessFlowlyOwner.init(context);
         ApplicationManager.init((Application) context.getApplicationContext());
-        return ProcessLifecycleOwner.get();
+        return ProcessFlowlyOwner.get();
     }
 
     @NonNull

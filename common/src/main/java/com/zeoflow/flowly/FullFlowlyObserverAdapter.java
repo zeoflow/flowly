@@ -3,19 +3,19 @@ package com.zeoflow.flowly;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-class FullLifecycleObserverAdapter implements LifecycleEventObserver {
+class FullFlowlyObserverAdapter implements FlowlyEventObserver {
 
-    private final FullLifecycleObserver mFullLifecycleObserver;
-    private final LifecycleEventObserver mLifecycleEventObserver;
+    private final FullFlowlyObserver mFullLifecycleObserver;
+    private final FlowlyEventObserver mLifecycleEventObserver;
 
-    FullLifecycleObserverAdapter(FullLifecycleObserver fullLifecycleObserver,
-            LifecycleEventObserver lifecycleEventObserver) {
+    FullFlowlyObserverAdapter(FullFlowlyObserver fullLifecycleObserver,
+                              FlowlyEventObserver lifecycleEventObserver) {
         mFullLifecycleObserver = fullLifecycleObserver;
         mLifecycleEventObserver = lifecycleEventObserver;
     }
 
     @Override
-    public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+    public void onStateChanged(@NonNull FlowlyOwner source, @NonNull Flowly.Event event) {
         switch (event) {
             case ON_CREATE:
                 mFullLifecycleObserver.onCreate(source);
@@ -44,7 +44,7 @@ class FullLifecycleObserverAdapter implements LifecycleEventObserver {
     }
 
     @Override
-    public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event, @Nullable Object... args) {
+    public void onStateChanged(@NonNull FlowlyOwner source, @NonNull Flowly.Event event, @Nullable Object... args) {
         switch (event) {
             case ON_CREATE:
                 mFullLifecycleObserver.onCreate(source);

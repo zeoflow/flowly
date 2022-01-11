@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 @SuppressWarnings("unused")
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface OnLifecycleEvent {
-    Lifecycle.Event value();
+@Deprecated
+public @interface OnFlowlyEvent {
+    Flowly.Event value();
 }

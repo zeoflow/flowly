@@ -10,7 +10,7 @@ object ErrorMessages {
     const val INVALID_SECOND_ARGUMENT = "2nd argument of a callback method" +
         " must be Lifecycle.Event and represent the current event"
     const val INVALID_FIRST_ARGUMENT = "1st argument of a callback method must be " +
-        "a LifecycleOwner which represents the source of the event"
+        "a FlowlyOwner which represents the source of the event"
     const val INVALID_METHOD_MODIFIER = "method marked with OnLifecycleEvent annotation can " +
         "not be private"
     const val INVALID_CLASS_MODIFIER = "class containing OnLifecycleEvent methods can not be " +

@@ -25,12 +25,12 @@ import androidx.annotation.Nullable;
  * If a class implements both this interface and
  * {@link com.zeoflow.flowly.DefaultLifecycleObserver}, then
  * methods of {@code DefaultLifecycleObserver} will be called first, and then followed by the call
- * of {@link LifecycleEventObserver#onStateChanged(LifecycleOwner, Lifecycle.Event)}
+ * of {@link FlowlyEventObserver#onStateChanged(FlowlyOwner, Flowly.Event)}
  * <p>
- * If a class implements this interface and in the same time uses {@link OnLifecycleEvent}, then
+ * If a class implements this interface and in the same time uses {@link OnFlowlyEvent}, then
  * annotations will be ignored.
  */
-public interface LifecycleEventObserver extends LifecycleObserver {
+public interface FlowlyEventObserver extends FlowlyObserver {
     /**
      * Called when a state transition event happens.
      *
@@ -38,8 +38,8 @@ public interface LifecycleEventObserver extends LifecycleObserver {
      * @param event The event
      */
     void onStateChanged(
-            @NonNull LifecycleOwner source,
-            @NonNull Lifecycle.Event event
+            @NonNull FlowlyOwner source,
+            @NonNull Flowly.Event event
     );
     /**
      * Called when a state transition event happens.
@@ -49,8 +49,8 @@ public interface LifecycleEventObserver extends LifecycleObserver {
      * @param args The arguments
      */
     void onStateChanged(
-            @NonNull LifecycleOwner source,
-            @NonNull Lifecycle.Event event,
+            @NonNull FlowlyOwner source,
+            @NonNull Flowly.Event event,
             @Nullable Object... args
     );
 }

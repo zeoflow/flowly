@@ -28,7 +28,7 @@ public class ReportFragment extends android.app.Fragment {
             LifecycleCallbacks.registerIn(activity);
         }
         // Prior to API 29 and to maintain compatibility with older versions of
-        // ProcessLifecycleOwner (which may not be updated when flowly-runtime is updated and
+        // ProcessFlowlyOwner (which may not be updated when flowly-runtime is updated and
         // need to support activities that don't extend from FragmentActivity from support lib),
         // use a framework fragment to get the correct timing of Lifecycle events
         android.app.FragmentManager manager = activity.getFragmentManager();
@@ -40,16 +40,16 @@ public class ReportFragment extends android.app.Fragment {
     }
 
     @SuppressWarnings("deprecation")
-    static void dispatch(@NonNull Activity activity, @NonNull Lifecycle.Event event) {
-        if (activity instanceof LifecycleRegistryOwner) {
-            ((LifecycleRegistryOwner) activity).getLifecycle().handleLifecycleEvent(event);
+    static void dispatch(@NonNull Activity activity, @NonNull Flowly.Event event) {
+        if (activity instanceof FlowlyRegistryOwner) {
+            ((FlowlyRegistryOwner) activity).getLifecycle().handleLifecycleEvent(event);
             return;
         }
 
-        if (activity instanceof LifecycleOwner) {
-            Lifecycle lifecycle = ((LifecycleOwner) activity).getLifecycle();
-            if (lifecycle instanceof LifecycleRegistry) {
-                ((LifecycleRegistry) lifecycle).handleLifecycleEvent(event);
+        if (activity instanceof FlowlyOwner) {
+            Flowly flowly = ((FlowlyOwner) activity).getLifecycle();
+            if (flowly instanceof FlowlyRegistry) {
+                ((FlowlyRegistry) flowly).handleLifecycleEvent(event);
             }
         }
     }
@@ -83,44 +83,44 @@ public class ReportFragment extends android.app.Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         dispatchCreate(mProcessListener);
-        dispatch(Lifecycle.Event.ON_CREATE);
+        dispatch(Flowly.Event.ON_CREATE);
     }
 
     @Override
     public void onStart() {
         super.onStart();
         dispatchStart(mProcessListener);
-        dispatch(Lifecycle.Event.ON_START);
+        dispatch(Flowly.Event.ON_START);
     }
 
     @Override
     public void onResume() {
         super.onResume();
         dispatchResume(mProcessListener);
-        dispatch(Lifecycle.Event.ON_RESUME);
+        dispatch(Flowly.Event.ON_RESUME);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        dispatch(Lifecycle.Event.ON_PAUSE);
+        dispatch(Flowly.Event.ON_PAUSE);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        dispatch(Lifecycle.Event.ON_STOP);
+        dispatch(Flowly.Event.ON_STOP);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        dispatch(Lifecycle.Event.ON_DESTROY);
+        dispatch(Flowly.Event.ON_DESTROY);
         // just want to be sure that we won't leak reference to an activity
         mProcessListener = null;
     }
 
-    private void dispatch(@NonNull Lifecycle.Event event) {
+    private void dispatch(@NonNull Flowly.Event event) {
         if (Build.VERSION.SDK_INT < 29) {
             // Only dispatch events from ReportFragment on API levels prior
             // to API 29. On API 29+, this is handled by the ActivityLifecycleCallbacks
@@ -159,7 +159,7 @@ public class ReportFragment extends android.app.Fragment {
         @Override
         public void onActivityPostCreated(@NonNull Activity activity,
                 @Nullable Bundle savedInstanceState) {
-            dispatch(activity, Lifecycle.Event.ON_CREATE);
+            dispatch(activity, Flowly.Event.ON_CREATE);
         }
 
         @Override
@@ -168,7 +168,7 @@ public class ReportFragment extends android.app.Fragment {
 
         @Override
         public void onActivityPostStarted(@NonNull Activity activity) {
-            dispatch(activity, Lifecycle.Event.ON_START);
+            dispatch(activity, Flowly.Event.ON_START);
         }
 
         @Override
@@ -177,12 +177,12 @@ public class ReportFragment extends android.app.Fragment {
 
         @Override
         public void onActivityPostResumed(@NonNull Activity activity) {
-            dispatch(activity, Lifecycle.Event.ON_RESUME);
+            dispatch(activity, Flowly.Event.ON_RESUME);
         }
 
         @Override
         public void onActivityPrePaused(@NonNull Activity activity) {
-            dispatch(activity, Lifecycle.Event.ON_PAUSE);
+            dispatch(activity, Flowly.Event.ON_PAUSE);
         }
 
         @Override
@@ -191,7 +191,7 @@ public class ReportFragment extends android.app.Fragment {
 
         @Override
         public void onActivityPreStopped(@NonNull Activity activity) {
-            dispatch(activity, Lifecycle.Event.ON_STOP);
+            dispatch(activity, Flowly.Event.ON_STOP);
         }
 
         @Override
@@ -205,7 +205,7 @@ public class ReportFragment extends android.app.Fragment {
 
         @Override
         public void onActivityPreDestroyed(@NonNull Activity activity) {
-            dispatch(activity, Lifecycle.Event.ON_DESTROY);
+            dispatch(activity, Flowly.Event.ON_DESTROY);
         }
 
         @Override
