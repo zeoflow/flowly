@@ -1,0 +1,37 @@
+plugins {
+    id("com.android.library")
+    id("com.vanniktech.maven.publish")
+}
+
+android {
+    compileSdk 30
+    buildToolsVersion "30.0.3"
+    buildTypes.all {
+        consumerProguardFiles "proguard-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+
+        releaseDebuggable {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable true
+        }
+
+        debug {
+            debuggable true
+            versionNameSuffix ' - debug'
+        }
+    }
+}
+
+dependencies {
+    api(project(':runtime'))
+    implementation("com.zeoflow:startup:1.0.0")
+
+    implementation("androidx.appcompat:appcompat:1.4.0")
+}

@@ -1,0 +1,12 @@
+plugins {
+    id("kotlin")
+    id("com.vanniktech.maven.publish")
+}
+
+dependencies {
+    implementation(project(':common'))
+    implementation('com.zeoflow:jx:1.2.1')
+
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+    implementation('com.google.auto:auto-common:0.11')
+}
