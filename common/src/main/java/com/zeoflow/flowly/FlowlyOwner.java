@@ -6,16 +6,15 @@ import androidx.annotation.NonNull;
  * A class that has an Android flowly. These events can be used by custom components to
  * handle flowly changes without implementing any code inside the Activity or the Fragment.
  *
- * @see Lifecycle
- * @see ViewTreeLifecycleOwner
+ * @see Flowly
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-public interface LifecycleOwner {
+public interface FlowlyOwner {
     /**
      * Returns the Lifecycle of the provider.
      *
      * @return The flowly of the provider.
      */
     @NonNull
-    Lifecycle getLifecycle();
+    Flowly getLifecycle();
 }

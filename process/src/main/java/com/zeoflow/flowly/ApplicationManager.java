@@ -14,18 +14,13 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelStore;
 import androidx.lifecycle.ViewModelStoreOwner;
 
-import com.zeoflow.flowly.debug.Logger;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class ApplicationManager implements Application.ActivityLifecycleCallbacks, LifecycleObserver {
-
-    private static final Logger logger = new Logger(
-            "ApplicationManager"
-    );
+public class ApplicationManager implements Application.ActivityLifecycleCallbacks, FlowlyObserver {
 
     @SuppressLint("StaticFieldLeak")
     @GuardedBy("LOCK")
@@ -40,12 +35,11 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
     private final List<String> activitiesCreated = new ArrayList<>();
 
     protected ApplicationManager() {
-        logger.d(Constants.INITIALIZED);
     }
 
     public static void init(Application application) {
         application.registerActivityLifecycleCallbacks(getInstance());
-        ProcessLifecycleOwner.addObserver(getInstance());
+        ProcessFlowlyOwner.addObserver(getInstance());
     }
 
     @NonNull
@@ -99,6 +93,19 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
         return null;
     }
 
+    @Nullable
+    public static FlowlyOwner getFlowlyOwner() {
+        if (getCompatActivity() != null) {
+            if (getCompatActivity() != null) {
+                return ParseFlowlyOwner.parse(getCompatActivity());
+            }
+        }
+        if (getActivity() instanceof FlowlyOwner) {
+            return (FlowlyOwner) getActivity();
+        }
+        return null;
+    }
+
     @NonNull
     public static FragmentManager getFragmentManager() {
         return getInstance().mFragmentManager.get();
@@ -118,7 +125,7 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
             mFragmentManager = new WeakReference<>(((AppCompatActivity) activity).getSupportFragmentManager());
         }
         startUpTime = System.currentTimeMillis();
-        ProcessLifecycleOwner.getInstance().activityCreated();
+        ProcessFlowlyOwner.getInstance().activityCreated();
     }
 
     @Override
@@ -131,7 +138,7 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
 
     @Override
     public void onActivityStarted(@NonNull Activity activity) {
-        ProcessLifecycleOwner.getInstance().activityStarted();
+        ProcessFlowlyOwner.getInstance().activityStarted();
     }
 
     @Override
@@ -147,15 +154,15 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
         currentActivity = new WeakReference<>(activity);
         if (!activitiesCreated.contains(activity.getClass().getName())) {
             activitiesCreated.add(activity.getClass().getName());
-            ProcessLifecycleOwner.getInstance().activityLoadTime(System.currentTimeMillis() - startUpTime);
-            ProcessLifecycleOwner.getInstance().activityReady();
+            ProcessFlowlyOwner.getInstance().activityLoadTime(System.currentTimeMillis() - startUpTime);
+            ProcessFlowlyOwner.getInstance().activityReady();
         }
         if (activity instanceof AppCompatActivity) {
             compatActivity = new WeakReference<>((AppCompatActivity) activity);
             mFragmentManager = new WeakReference<>(((AppCompatActivity) activity).getSupportFragmentManager());
         }
         startUpTime = 0;
-        ProcessLifecycleOwner.getInstance().activityResumed();
+        ProcessFlowlyOwner.getInstance().activityResumed();
     }
 
     @Override
@@ -169,7 +176,7 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
     @Override
     public void onActivityPaused(@NonNull Activity activity) {
         lastActivity = new WeakReference<>(activity);
-        ProcessLifecycleOwner.getInstance().activityPaused();
+        ProcessFlowlyOwner.getInstance().activityPaused();
     }
 
     @Override
@@ -182,7 +189,7 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
 
     @Override
     public void onActivityStopped(@NonNull Activity activity) {
-        ProcessLifecycleOwner.getInstance().activityStopped();
+        ProcessFlowlyOwner.getInstance().activityStopped();
     }
 
     @Override
@@ -210,7 +217,7 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
 
     @Override
     public void onActivityDestroyed(@NonNull Activity activity) {
-        ProcessLifecycleOwner.getInstance().activityDestroyed();
+        ProcessFlowlyOwner.getInstance().activityDestroyed();
         currentActivity = null;
         activitiesCreated.remove(activity.getClass().getName());
         compatActivity = null;
@@ -220,39 +227,39 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
     public void onActivityPostDestroyed(@NonNull Activity activity) {
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
+    @OnFlowlyEvent(Flowly.Event.ON_CREATE)
     public void onCreate() {
-        ProcessLifecycleOwner.getInstance().applicationCreated();
+        ProcessFlowlyOwner.getInstance().applicationCreated();
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    @OnFlowlyEvent(Flowly.Event.ON_START)
     public void onStart() {
         if (firstLaunch) {
             AppStartUp.appLoaded();
-            ProcessLifecycleOwner.getInstance().applicationLaunched();
+            ProcessFlowlyOwner.getInstance().applicationLaunched();
             firstLaunch = false;
         }
-        ProcessLifecycleOwner.getInstance().applicationStarted();
+        ProcessFlowlyOwner.getInstance().applicationStarted();
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    @OnFlowlyEvent(Flowly.Event.ON_RESUME)
     public void onResume() {
-        ProcessLifecycleOwner.getInstance().applicationResumed();
+        ProcessFlowlyOwner.getInstance().applicationResumed();
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    @OnFlowlyEvent(Flowly.Event.ON_PAUSE)
     public void onPause() {
-        ProcessLifecycleOwner.getInstance().applicationPaused();
+        ProcessFlowlyOwner.getInstance().applicationPaused();
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    @OnFlowlyEvent(Flowly.Event.ON_STOP)
     public void onStop() {
-        ProcessLifecycleOwner.getInstance().applicationStopped();
+        ProcessFlowlyOwner.getInstance().applicationStopped();
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    @OnFlowlyEvent(Flowly.Event.ON_DESTROY)
     public void onDestroy() {
-        ProcessLifecycleOwner.getInstance().applicationDestroyed();
+        ProcessFlowlyOwner.getInstance().applicationDestroyed();
     }
 
 }

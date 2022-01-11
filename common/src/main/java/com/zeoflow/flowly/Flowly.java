@@ -10,14 +10,14 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Defines an object that has an Android Lifecycle. {@link androidx.fragment.app.Fragment Fragment}
  * and {@link androidx.fragment.app.FragmentActivity FragmentActivity} classes implement
- * {@link LifecycleOwner} interface which has the {@link LifecycleOwner#getLifecycle()
- * getLifecycle} method to access the Lifecycle. You can also implement {@link LifecycleOwner}
+ * {@link FlowlyOwner} interface which has the {@link FlowlyOwner#getLifecycle()
+ * getLifecycle} method to access the Lifecycle. You can also implement {@link FlowlyOwner}
  * in your own classes.
  * <p>
  * {@link Event#ON_CREATE}, {@link Event#ON_START}, {@link Event#ON_RESUME} events in this class
- * are dispatched <b>after</b> the {@link LifecycleOwner}'s related method returns.
+ * are dispatched <b>after</b> the {@link FlowlyOwner}'s related method returns.
  * {@link Event#ON_PAUSE}, {@link Event#ON_STOP}, {@link Event#ON_DESTROY} events in this class
- * are dispatched <b>before</b> the {@link LifecycleOwner}'s related method is called.
+ * are dispatched <b>before</b> the {@link FlowlyOwner}'s related method is called.
  * For instance, {@link Event#ON_START} will be dispatched after
  * {@link android.app.Activity#onStart onStart} returns, {@link Event#ON_STOP} will be dispatched
  * before {@link android.app.Activity#onStop onStop} is called.
@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * <pre>
  * class TestObserver implements DefaultLifecycleObserver {
  *     {@literal @}Override
- *     public void onCreate(LifecycleOwner owner) {
+ *     public void onCreate(FlowlyOwner owner) {
  *         // your code
  *     }
  * }
@@ -46,21 +46,21 @@ import java.util.concurrent.atomic.AtomicReference;
  * </pre>
  * <p>
  * Observer methods can receive zero or one argument.
- * If used, the first argument must be of type {@link LifecycleOwner}.
+ * If used, the first argument must be of type {@link FlowlyOwner}.
  * Methods annotated with {@link Event#ON_ANY} can receive the second argument, which must be
  * of type {@link Event}.
  * <pre>
  * class TestObserver implements LifecycleObserver {
  *   {@literal @}OnLifecycleEvent(ON_CREATE)
- *   void onCreated(LifecycleOwner source) {}
+ *   void onCreated(FlowlyOwner source) {}
  *   {@literal @}OnLifecycleEvent(ON_ANY)
- *   void onAny(LifecycleOwner source, Event event) {}
+ *   void onAny(FlowlyOwner source, Event event) {}
  * }
  * </pre>
  * These additional parameters are provided to allow you to conveniently observe multiple providers
  * and events without tracking them manually.
  */
-public abstract class Lifecycle {
+public abstract class Flowly {
 
     /**
      * Lifecycle coroutines extensions stashes the CoroutineScope into this field.
@@ -72,17 +72,17 @@ public abstract class Lifecycle {
     AtomicReference<Object> mInternalScopeRef = new AtomicReference<>();
 
     /**
-     * Adds a LifecycleObserver that will be notified when the LifecycleOwner changes
+     * Adds a LifecycleObserver that will be notified when the FlowlyOwner changes
      * state.
      * <p>
-     * The given observer will be brought to the current state of the LifecycleOwner.
-     * For example, if the LifecycleOwner is in {@link State#STARTED} state, the given observer
+     * The given observer will be brought to the current state of the FlowlyOwner.
+     * For example, if the FlowlyOwner is in {@link State#STARTED} state, the given observer
      * will receive {@link Event#ON_CREATE}, {@link Event#ON_START} events.
      *
      * @param observer The observer to notify.
      */
     @MainThread
-    public abstract void addObserver(@NonNull LifecycleObserver observer);
+    public abstract void addObserver(@NonNull FlowlyObserver observer);
 
     /**
      * Removes the given observer from the observers list.
@@ -98,7 +98,7 @@ public abstract class Lifecycle {
      * @param observer The observer to be removed.
      */
     @MainThread
-    public abstract void removeObserver(@NonNull LifecycleObserver observer);
+    public abstract void removeObserver(@NonNull FlowlyObserver observer);
 
     /**
      * Returns the current state of the Lifecycle.
@@ -168,27 +168,27 @@ public abstract class Lifecycle {
          */
         ON_ACTIVITY_DESTROYED,
         /**
-         * Constant for onCreate event of the {@link LifecycleOwner}.
+         * Constant for onCreate event of the {@link FlowlyOwner}.
          */
         ON_CREATE,
         /**
-         * Constant for onStart event of the {@link LifecycleOwner}.
+         * Constant for onStart event of the {@link FlowlyOwner}.
          */
         ON_START,
         /**
-         * Constant for onResume event of the {@link LifecycleOwner}.
+         * Constant for onResume event of the {@link FlowlyOwner}.
          */
         ON_RESUME,
         /**
-         * Constant for onPause event of the {@link LifecycleOwner}.
+         * Constant for onPause event of the {@link FlowlyOwner}.
          */
         ON_PAUSE,
         /**
-         * Constant for onStop event of the {@link LifecycleOwner}.
+         * Constant for onStop event of the {@link FlowlyOwner}.
          */
         ON_STOP,
         /**
-         * Constant for onDestroy event of the {@link LifecycleOwner}.
+         * Constant for onDestroy event of the {@link FlowlyOwner}.
          */
         ON_DESTROY,
         /**
@@ -197,8 +197,8 @@ public abstract class Lifecycle {
         ON_ANY;
 
         /**
-         * Returns the {@link Lifecycle.Event} that will be reported by a {@link Lifecycle}
-         * leaving the specified {@link Lifecycle.State} to a lower state, or {@code null}
+         * Returns the {@link Flowly.Event} that will be reported by a {@link Flowly}
+         * leaving the specified {@link Flowly.State} to a lower state, or {@code null}
          * if there is no valid event that can move down from the given state.
          *
          * @param state the higher state that the returned event will transition down from
@@ -219,8 +219,8 @@ public abstract class Lifecycle {
         }
 
         /**
-         * Returns the {@link Lifecycle.Event} that will be reported by a {@link Lifecycle}
-         * entering the specified {@link Lifecycle.State} from a higher state, or {@code null}
+         * Returns the {@link Flowly.Event} that will be reported by a {@link Flowly}
+         * entering the specified {@link Flowly.State} from a higher state, or {@code null}
          * if there is no valid event that can move down to the given state.
          *
          * @param state the lower state that the returned event will transition down to
@@ -241,8 +241,8 @@ public abstract class Lifecycle {
         }
 
         /**
-         * Returns the {@link Lifecycle.Event} that will be reported by a {@link Lifecycle}
-         * leaving the specified {@link Lifecycle.State} to a higher state, or {@code null}
+         * Returns the {@link Flowly.Event} that will be reported by a {@link Flowly}
+         * leaving the specified {@link Flowly.State} to a higher state, or {@code null}
          * if there is no valid event that can move up from the given state.
          *
          * @param state the lower state that the returned event will transition up from
@@ -263,8 +263,8 @@ public abstract class Lifecycle {
         }
 
         /**
-         * Returns the {@link Lifecycle.Event} that will be reported by a {@link Lifecycle}
-         * entering the specified {@link Lifecycle.State} from a lower state, or {@code null}
+         * Returns the {@link Flowly.Event} that will be reported by a {@link Flowly}
+         * entering the specified {@link Flowly.State} from a lower state, or {@code null}
          * if there is no valid event that can move up to the given state.
          *
          * @param state the higher state that the returned event will transition up to
@@ -285,11 +285,11 @@ public abstract class Lifecycle {
         }
 
         /**
-         * Returns the new {@link Lifecycle.State} of a {@link Lifecycle} that just reported
-         * this {@link Lifecycle.Event}.
+         * Returns the new {@link Flowly.State} of a {@link Flowly} that just reported
+         * this {@link Flowly.Event}.
          *
          * Throws {@link IllegalArgumentException} if called on {@link #ON_ANY}, as it is a special
-         * value used by {@link OnLifecycleEvent} and not a real flowly event.
+         * value used by {@link OnFlowlyEvent} and not a real flowly event.
          *
          * @return the state that will result from this event
          */
@@ -313,11 +313,11 @@ public abstract class Lifecycle {
         }
 
         /**
-         * Returns the new {@link Lifecycle.State} of a {@link Lifecycle} that just reported
-         * this {@link Lifecycle.Event}.
+         * Returns the new {@link Flowly.State} of a {@link Flowly} that just reported
+         * this {@link Flowly.Event}.
          *
          * Throws {@link IllegalArgumentException} if called on {@link #ON_ANY}, as it is a special
-         * value used by {@link OnLifecycleEvent} and not a real flowly event.
+         * value used by {@link OnFlowlyEvent} and not a real flowly event.
          *
          * @return whether the event is for an application
          */
@@ -332,11 +332,11 @@ public abstract class Lifecycle {
         }
 
         /**
-         * Returns the new {@link Lifecycle.State} of a {@link Lifecycle} that just reported
-         * this {@link Lifecycle.Event}.
+         * Returns the new {@link Flowly.State} of a {@link Flowly} that just reported
+         * this {@link Flowly.Event}.
          *
          * Throws {@link IllegalArgumentException} if called on {@link #ON_ANY}, as it is a special
-         * value used by {@link OnLifecycleEvent} and not a real flowly event.
+         * value used by {@link OnFlowlyEvent} and not a real flowly event.
          *
          * @return whether the event is for an activity
          */
@@ -358,21 +358,21 @@ public abstract class Lifecycle {
     @SuppressWarnings("WeakerAccess")
     public enum State {
         /**
-         * Destroyed state for a LifecycleOwner. After this event, this Lifecycle will not dispatch
+         * Destroyed state for a FlowlyOwner. After this event, this Lifecycle will not dispatch
          * any more events. For instance, for an {@link android.app.Activity}, this state is reached
          * <b>right before</b> Activity's {@link android.app.Activity#onDestroy() onDestroy} call.
          */
         DESTROYED,
 
         /**
-         * Initialized state for a LifecycleOwner. For an {@link android.app.Activity}, this is
+         * Initialized state for a FlowlyOwner. For an {@link android.app.Activity}, this is
          * the state when it is constructed but has not received
          * {@link android.app.Activity#onCreate(android.os.Bundle) onCreate} yet.
          */
         INITIALIZED,
 
         /**
-         * Created state for a LifecycleOwner. For an {@link android.app.Activity}, this state
+         * Created state for a FlowlyOwner. For an {@link android.app.Activity}, this state
          * is reached in two cases:
          * <ul>
          *     <li>after {@link android.app.Activity#onCreate(android.os.Bundle) onCreate} call;
@@ -382,7 +382,7 @@ public abstract class Lifecycle {
         CREATED,
 
         /**
-         * Started state for a LifecycleOwner. For an {@link android.app.Activity}, this state
+         * Started state for a FlowlyOwner. For an {@link android.app.Activity}, this state
          * is reached in two cases:
          * <ul>
          *     <li>after {@link android.app.Activity#onStart() onStart} call;
@@ -392,7 +392,7 @@ public abstract class Lifecycle {
         STARTED,
 
         /**
-         * Resumed state for a LifecycleOwner. For an {@link android.app.Activity}, this state
+         * Resumed state for a FlowlyOwner. For an {@link android.app.Activity}, this state
          * is reached after {@link android.app.Activity#onResume() onResume} is called.
          */
         RESUMED;

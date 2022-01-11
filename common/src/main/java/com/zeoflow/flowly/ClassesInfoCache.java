@@ -11,8 +11,8 @@ import java.util.Map;
 
 /**
  * Reflection is expensive, so we cache information about methods
- * for {@link ReflectiveGenericLifecycleObserver}, so it can call them,
- * and for {@link Lifecycling} to determine which observer adapter to use.
+ * for {@link ReflectiveGenericFlowlyObserver}, so it can call them,
+ * and for {@link Flowlying} to determine which observer adapter to use.
  */
 final class ClassesInfoCache {
 
@@ -24,30 +24,30 @@ final class ClassesInfoCache {
     private static final int CALL_TYPE_LONG = 3;
 
     private final Map<Class<?>, CallbackInfo> mCallbackMap = new HashMap<>();
-    private final Map<Class<?>, Boolean> mHasLifecycleMethods = new HashMap<>();
+    private final Map<Class<?>, Boolean> mHasFlowlyMethods = new HashMap<>();
 
-    boolean hasLifecycleMethods(Class<?> klass) {
+    boolean hasFlowlyMethods(Class<?> klass) {
 
-        Boolean hasLifecycleMethods = mHasLifecycleMethods.get(klass);
-        if (hasLifecycleMethods != null) {
-            return hasLifecycleMethods;
+        Boolean hasFlowlyMethods = mHasFlowlyMethods.get(klass);
+        if (hasFlowlyMethods != null) {
+            return hasFlowlyMethods;
         }
 
         Method[] methods = getDeclaredMethods(klass);
         for (Method method : methods) {
-            OnLifecycleEvent annotation = method.getAnnotation(OnLifecycleEvent.class);
+            OnFlowlyEvent annotation = method.getAnnotation(OnFlowlyEvent.class);
             if (annotation != null) {
                 // Optimization for reflection, we know that this method is called
-                // when there is no generated adapter. But there are methods with @OnLifecycleEvent
-                // so we know that will use ReflectiveGenericLifecycleObserver,
+                // when there is no generated adapter. But there are methods with @OnFlowlyEvent
+                // so we know that will use ReflectiveGenericFlowlyObserver,
                 // so we createInfo in advance.
-                // CreateInfo always initialize mHasLifecycleMethods for a class, so we don't do it
+                // CreateInfo always initialize mHasFlowlyMethods for a class, so we don't do it
                 // here.
                 createInfo(klass, methods);
                 return true;
             }
         }
-        mHasLifecycleMethods.put(klass, false);
+        mHasFlowlyMethods.put(klass, false);
         return false;
     }
 
@@ -56,7 +56,7 @@ final class ClassesInfoCache {
             return klass.getDeclaredMethods();
         } catch (NoClassDefFoundError e) {
             throw new IllegalArgumentException("The observer class has some methods that use "
-                    + "newer APIs which are not available in the current OS version. Lifecycles "
+                    + "newer APIs which are not available in the current OS version. Flowlys "
                     + "cannot access even other methods so you should make sure that your "
                     + "observer classes only access framework classes that are available "
                     + "in your min API level OR use flowly:compiler annotation processor.", e);
@@ -72,14 +72,14 @@ final class ClassesInfoCache {
         return existing;
     }
 
-    private void verifyAndPutHandler(Map<MethodReference, Lifecycle.Event> handlers,
-                                     MethodReference newHandler, Lifecycle.Event newEvent, Class<?> klass) {
-        Lifecycle.Event event = handlers.get(newHandler);
+    private void verifyAndPutHandler(Map<MethodReference, Flowly.Event> handlers,
+                                     MethodReference newHandler, Flowly.Event newEvent, Class<?> klass) {
+        Flowly.Event event = handlers.get(newHandler);
         if (event != null && newEvent != event) {
             Method method = newHandler.mMethod;
             throw new IllegalArgumentException(
                     "Method " + method.getName() + " in " + klass.getName()
-                            + " already declared with different @OnLifecycleEvent value: previous"
+                            + " already declared with different @OnFlowlyEvent value: previous"
                             + " value " + event + ", new value " + newEvent);
         }
         if (event == null) {
@@ -89,7 +89,7 @@ final class ClassesInfoCache {
 
     private CallbackInfo createInfo(Class<?> klass, @Nullable Method[] declaredMethods) {
         Class<?> superclass = klass.getSuperclass();
-        Map<MethodReference, Lifecycle.Event> handlerToEvent = new HashMap<>();
+        Map<MethodReference, Flowly.Event> handlerToEvent = new HashMap<>();
         if (superclass != null) {
             CallbackInfo superInfo = getInfo(superclass);
             handlerToEvent.putAll(superInfo.mHandlerToEvent);
@@ -97,43 +97,43 @@ final class ClassesInfoCache {
 
         Class<?>[] interfaces = klass.getInterfaces();
         for (Class<?> intrfc : interfaces) {
-            for (Map.Entry<MethodReference, Lifecycle.Event> entry : getInfo(
+            for (Map.Entry<MethodReference, Flowly.Event> entry : getInfo(
                     intrfc).mHandlerToEvent.entrySet()) {
                 verifyAndPutHandler(handlerToEvent, entry.getKey(), entry.getValue(), klass);
             }
         }
 
         Method[] methods = declaredMethods != null ? declaredMethods : getDeclaredMethods(klass);
-        boolean hasLifecycleMethods = false;
+        boolean hasFlowlyMethods = false;
         for (Method method : methods) {
-            OnLifecycleEvent annotation = method.getAnnotation(OnLifecycleEvent.class);
+            OnFlowlyEvent annotation = method.getAnnotation(OnFlowlyEvent.class);
             if (annotation == null) {
                 continue;
             }
-            hasLifecycleMethods = true;
+            hasFlowlyMethods = true;
             Class<?>[] params = method.getParameterTypes();
             int callType = CALL_TYPE_NO_ARG;
             // TODO assign different call types
             if (params.length > 0) {
-                if (params[0].isAssignableFrom(LifecycleOwner.class)) {
+                if (params[0].isAssignableFrom(FlowlyOwner.class)) {
                     callType = CALL_TYPE_PROVIDER;
                 }
-//                if (!params[0].isAssignableFrom(LifecycleOwner.class)) {
+//                if (!params[0].isAssignableFrom(FlowlyOwner.class)) {
 //                    throw new IllegalArgumentException(
-//                            "invalid parameter type. Must be one and instanceof LifecycleOwner");
+//                            "invalid parameter type. Must be one and instanceof FlowlyOwner");
 //                }
             }
-            Lifecycle.Event event = annotation.value();
+            Flowly.Event event = annotation.value();
 
             if (params.length > 1) {
-                if (params[1].isAssignableFrom(Lifecycle.Event.class)) {
+                if (params[1].isAssignableFrom(Flowly.Event.class)) {
                     callType = CALL_TYPE_PROVIDER_WITH_EVENT;
                 }
-//                if (!params[1].isAssignableFrom(Lifecycle.Event.class)) {
+//                if (!params[1].isAssignableFrom(Flowly.Event.class)) {
 //                    throw new IllegalArgumentException(
 //                            "invalid parameter type. second arg must be an event");
 //                }
-//                if (event != Lifecycle.Event.ON_ANY) {
+//                if (event != Flowly.Event.ON_ANY) {
 //                    throw new IllegalArgumentException(
 //                            "Second arg is supported only for ON_ANY value");
 //                }
@@ -152,20 +152,20 @@ final class ClassesInfoCache {
         }
         CallbackInfo info = new CallbackInfo(handlerToEvent);
         mCallbackMap.put(klass, info);
-        mHasLifecycleMethods.put(klass, hasLifecycleMethods);
+        mHasFlowlyMethods.put(klass, hasFlowlyMethods);
         return info;
     }
 
     @SuppressWarnings("WeakerAccess")
     static class CallbackInfo {
-        final Map<Lifecycle.Event, List<MethodReference>> mEventToHandlers;
-        final Map<MethodReference, Lifecycle.Event> mHandlerToEvent;
+        final Map<Flowly.Event, List<MethodReference>> mEventToHandlers;
+        final Map<MethodReference, Flowly.Event> mHandlerToEvent;
 
-        CallbackInfo(Map<MethodReference, Lifecycle.Event> handlerToEvent) {
+        CallbackInfo(Map<MethodReference, Flowly.Event> handlerToEvent) {
             mHandlerToEvent = handlerToEvent;
             mEventToHandlers = new HashMap<>();
-            for (Map.Entry<MethodReference, Lifecycle.Event> entry : handlerToEvent.entrySet()) {
-                Lifecycle.Event event = entry.getValue();
+            for (Map.Entry<MethodReference, Flowly.Event> entry : handlerToEvent.entrySet()) {
+                Flowly.Event event = entry.getValue();
                 List<MethodReference> methodReferences = mEventToHandlers.get(event);
                 if (methodReferences == null) {
                     methodReferences = new ArrayList<>();
@@ -175,7 +175,7 @@ final class ClassesInfoCache {
             }
         }
 
-        void invokeCallbacks(LifecycleOwner source, Lifecycle.Event event, Object target, Object... args) {
+        void invokeCallbacks(FlowlyOwner source, Flowly.Event event, Object target, Object... args) {
             invokeMethodsForEvent(
                     mEventToHandlers.get(event),
                     source,
@@ -184,7 +184,7 @@ final class ClassesInfoCache {
                     args
             );
             invokeMethodsForEvent(
-                    mEventToHandlers.get(Lifecycle.Event.ON_ANY),
+                    mEventToHandlers.get(Flowly.Event.ON_ANY),
                     source,
                     event,
                     target,
@@ -193,7 +193,7 @@ final class ClassesInfoCache {
         }
 
         private static void invokeMethodsForEvent(List<MethodReference> handlers,
-                                                  LifecycleOwner source, Lifecycle.Event event, Object mWrapped, Object... args) {
+                                                  FlowlyOwner source, Flowly.Event event, Object mWrapped, Object... args) {
             if (handlers != null) {
                 for (int i = handlers.size() - 1; i >= 0; i--) {
                     handlers.get(i).invokeCallback(source, event, mWrapped, args);
@@ -213,7 +213,7 @@ final class ClassesInfoCache {
             mMethod.setAccessible(true);
         }
 
-        void invokeCallback(LifecycleOwner source, Lifecycle.Event event, Object target, Object... args) {
+        void invokeCallback(FlowlyOwner source, Flowly.Event event, Object target, Object... args) {
             try {
                 if (event.isActivityEvent()) {
                     if (mCallType == CALL_TYPE_NO_ARG) {

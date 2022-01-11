@@ -3,7 +3,7 @@ package com.zeoflow.flowly;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-class SingleGeneratedAdapterObserver implements LifecycleEventObserver {
+class SingleGeneratedAdapterObserver implements FlowlyEventObserver {
 
     private final GeneratedAdapter mGeneratedAdapter;
 
@@ -13,8 +13,8 @@ class SingleGeneratedAdapterObserver implements LifecycleEventObserver {
 
     @Override
     public void onStateChanged(
-            @NonNull LifecycleOwner source,
-            @NonNull Lifecycle.Event event
+            @NonNull FlowlyOwner source,
+            @NonNull Flowly.Event event
     ) {
         mGeneratedAdapter.callMethods(source, event, false, null);
         mGeneratedAdapter.callMethods(source, event, true, null);
@@ -22,8 +22,8 @@ class SingleGeneratedAdapterObserver implements LifecycleEventObserver {
 
     @Override
     public void onStateChanged(
-            @NonNull LifecycleOwner source,
-            @NonNull Lifecycle.Event event,
+            @NonNull FlowlyOwner source,
+            @NonNull Flowly.Event event,
             @Nullable Object... args
     ) {
         mGeneratedAdapter.callMethods(source, event, false, null);

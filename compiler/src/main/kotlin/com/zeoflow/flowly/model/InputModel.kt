@@ -7,11 +7,11 @@ import javax.lang.model.element.TypeElement
 
 data class InputModel(
     // all java files with flowly annotations excluding classes from classpath
-        private val rootTypes: Set<TypeElement>,
+    private val rootTypes: Set<TypeElement>,
     // info about all flowly observers including classes from classpath
-        val observersInfo: Map<TypeElement, LifecycleObserverInfo>,
+    val observersInfo: Map<TypeElement, FlowlyObserverInfo>,
     // info about generated adapters from class path
-        val generatedAdapters: Map<TypeElement, List<ExecutableElement>>
+    val generatedAdapters: Map<TypeElement, List<ExecutableElement>>
 ) {
 
     /**

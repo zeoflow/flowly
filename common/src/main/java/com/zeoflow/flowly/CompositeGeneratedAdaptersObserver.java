@@ -4,7 +4,7 @@ package com.zeoflow.flowly;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-class CompositeGeneratedAdaptersObserver implements LifecycleEventObserver {
+class CompositeGeneratedAdaptersObserver implements FlowlyEventObserver {
 
     private final GeneratedAdapter[] mGeneratedAdapters;
 
@@ -13,7 +13,7 @@ class CompositeGeneratedAdaptersObserver implements LifecycleEventObserver {
     }
 
     @Override
-    public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+    public void onStateChanged(@NonNull FlowlyOwner source, @NonNull Flowly.Event event) {
         MethodCallsLogger logger = new MethodCallsLogger();
         for (GeneratedAdapter mGenerated: mGeneratedAdapters) {
             mGenerated.callMethods(source, event, false, logger);
@@ -25,8 +25,8 @@ class CompositeGeneratedAdaptersObserver implements LifecycleEventObserver {
 
     @Override
     public void onStateChanged(
-            @NonNull LifecycleOwner source,
-            @NonNull Lifecycle.Event event,
+            @NonNull FlowlyOwner source,
+            @NonNull Flowly.Event event,
             @Nullable Object... args
     ) {
         MethodCallsLogger logger = new MethodCallsLogger();

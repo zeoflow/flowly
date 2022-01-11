@@ -22,7 +22,7 @@ fun writeModels(infos: List<AdapterClass>, processingEnv: ProcessingEnvironment)
 
 private val GENERATED_PACKAGE = "javax.annotation"
 private val GENERATED_NAME = "Generated"
-private val LIFECYCLE_EVENT = Lifecycle.Event::class.java
+private val LIFECYCLE_EVENT = Flowly.Event::class.java
 
 private val T = "\$T"
 private val N = "\$N"
@@ -30,7 +30,7 @@ private val L = "\$L"
 private val S = "\$S"
 
 private val OWNER_PARAM: ParameterSpec = ParameterSpec.builder(
-    ClassName.get(LifecycleOwner::class.java), "owner"
+    ClassName.get(FlowlyOwner::class.java), "owner"
 ).build()
 private val EVENT_PARAM: ParameterSpec = ParameterSpec.builder(
     ClassName.get(LIFECYCLE_EVENT), "event"
@@ -59,13 +59,13 @@ private fun writeAdapter(adapter: AdapterClass, processingEnv: ProcessingEnviron
     val dispatchMethod = dispatchMethodBuilder.apply {
 
         addStatement("boolean $L = $N != null", HAS_LOGGER_VAR, METHODS_LOGGER)
-        val callsByEventType = adapter.calls.groupBy { it.method.onLifecycleEvent.value }
+        val callsByEventType = adapter.calls.groupBy { it.method.onFlowlyEvent.value }
         beginControlFlow("if ($N)", ON_ANY_PARAM).apply {
-            writeMethodCalls(callsByEventType[Lifecycle.Event.ON_ANY] ?: emptyList(), receiverField)
+            writeMethodCalls(callsByEventType[Flowly.Event.ON_ANY] ?: emptyList(), receiverField)
         }.endControlFlow()
 
         callsByEventType
-            .filterKeys { key -> key != Lifecycle.Event.ON_ANY }
+            .filterKeys { key -> key != Flowly.Event.ON_ANY }
             .forEach { (event, calls) ->
                 beginControlFlow("if ($N == $T.$L)", EVENT_PARAM, LIFECYCLE_EVENT, event)
                 writeMethodCalls(calls, receiverField)

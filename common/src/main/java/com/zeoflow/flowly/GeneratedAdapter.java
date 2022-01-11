@@ -17,6 +17,6 @@ public interface GeneratedAdapter {
      * @param logger if passed, used to track called methods and prevent calling the same method
      *              twice
      */
-    void callMethods(LifecycleOwner source, Lifecycle.Event event, boolean onAny,
-            MethodCallsLogger logger);
+    void callMethods(FlowlyOwner source, Flowly.Event event, boolean onAny,
+                     MethodCallsLogger logger);
 }

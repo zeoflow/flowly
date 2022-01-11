@@ -4,7 +4,7 @@ import com.zeoflow.flowly.model.AdapterClass
 import com.zeoflow.flowly.model.EventMethod
 import com.zeoflow.flowly.model.EventMethodCall
 import com.zeoflow.flowly.model.InputModel
-import com.zeoflow.flowly.model.LifecycleObserverInfo
+import com.zeoflow.flowly.model.FlowlyObserverInfo
 import com.google.common.collect.HashMultimap
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.TypeElement
@@ -24,7 +24,7 @@ private fun mergeAndVerifyMethods(
             processingEnv.elementUtils.overrides(method, parentMethod.method, type)
         }
         if (overrideMethod != null) {
-            if (overrideMethod.onLifecycleEvent != parentMethod.onLifecycleEvent) {
+            if (overrideMethod.onFlowlyEvent != parentMethod.onFlowlyEvent) {
                 processingEnv.messager.printMessage(
                     Diagnostic.Kind.ERROR,
                         ErrorMessages.INVALID_STATE_OVERRIDE_METHOD, overrideMethod.method
@@ -40,11 +40,11 @@ private fun mergeAndVerifyMethods(
 
 fun flattenObservers(
     processingEnv: ProcessingEnvironment,
-    world: Map<TypeElement, LifecycleObserverInfo>
-): List<LifecycleObserverInfo> {
-    val flattened: MutableMap<LifecycleObserverInfo, LifecycleObserverInfo> = mutableMapOf()
+    world: Map<TypeElement, FlowlyObserverInfo>
+): List<FlowlyObserverInfo> {
+    val flattened: MutableMap<FlowlyObserverInfo, FlowlyObserverInfo> = mutableMapOf()
 
-    fun traverse(observer: LifecycleObserverInfo) {
+    fun traverse(observer: FlowlyObserverInfo) {
         if (observer in flattened) {
             return
         }
@@ -62,7 +62,7 @@ fun flattenObservers(
                 )
             }
 
-        flattened[observer] = LifecycleObserverInfo(
+        flattened[observer] = FlowlyObserverInfo(
             observer.type,
             mergeAndVerifyMethods(processingEnv, observer.type, observer.methods, methods)
         )

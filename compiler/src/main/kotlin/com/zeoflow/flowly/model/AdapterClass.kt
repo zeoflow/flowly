@@ -1,6 +1,6 @@
 package com.zeoflow.flowly.model
 
-import com.zeoflow.flowly.Lifecycling
+import com.zeoflow.flowly.Flowlying
 import com.zeoflow.flowly.getPackage
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
@@ -17,5 +17,5 @@ fun getAdapterName(type: TypeElement): String {
     val partialName = if (packageElement.isUnnamed) qName else qName.substring(
         packageElement.qualifiedName.toString().length + 1
     )
-    return Lifecycling.getAdapterName(partialName)
+    return Flowlying.getAdapterName(partialName)
 }

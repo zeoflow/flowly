@@ -15,12 +15,12 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * An implementation of {@link Lifecycle} that can handle multiple observers.
+ * An implementation of {@link Flowly} that can handle multiple observers.
  * <p>
  * It is used by Fragments and Support Library Activities. You can also directly use it if you have
- * a custom LifecycleOwner.
+ * a custom FlowlyOwner.
  */
-public class LifecycleRegistry extends Lifecycle {
+public class FlowlyRegistry extends Flowly {
 
     /**
      * Custom list that keeps observers and can handle removals / additions during traversal.
@@ -29,7 +29,7 @@ public class LifecycleRegistry extends Lifecycle {
      * if addition_order(observer1) < addition_order(observer2), then
      * state(observer1) >= state(observer2),
      */
-    private FastSafeIterableMap<LifecycleObserver, ObserverWithState> mObserverMap =
+    private FastSafeIterableMap<FlowlyObserver, ObserverWithState> mObserverMap =
             new FastSafeIterableMap<>();
     /**
      * Current state
@@ -37,12 +37,12 @@ public class LifecycleRegistry extends Lifecycle {
     private State mState;
     /**
      * The provider that owns this Lifecycle.
-     * Only WeakReference on LifecycleOwner is kept, so if somebody leaks Lifecycle, they won't leak
+     * Only WeakReference on FlowlyOwner is kept, so if somebody leaks Lifecycle, they won't leak
      * the whole Fragment / Activity. However, to leak Lifecycle object isn't great idea neither,
      * because it keeps strong references on all other listeners, so you'll leak all of them as
      * well.
      */
-    private final WeakReference<LifecycleOwner> mLifecycleOwner;
+    private final WeakReference<FlowlyOwner> mFlowlyOwner;
 
     private int mAddingObserverCounter = 0;
 
@@ -63,17 +63,17 @@ public class LifecycleRegistry extends Lifecycle {
     /**
      * Creates a new LifecycleRegistry for the given provider.
      * <p>
-     * You should usually create this inside your LifecycleOwner class's constructor and hold
+     * You should usually create this inside your FlowlyOwner class's constructor and hold
      * onto the same instance.
      *
-     * @param provider The owner LifecycleOwner
+     * @param provider The owner FlowlyOwner
      */
-    public LifecycleRegistry(@NonNull LifecycleOwner provider) {
+    public FlowlyRegistry(@NonNull FlowlyOwner provider) {
         this(provider, true);
     }
 
-    private LifecycleRegistry(@NonNull LifecycleOwner provider, boolean enforceMainThread) {
-        mLifecycleOwner = new WeakReference<>(provider);
+    private FlowlyRegistry(@NonNull FlowlyOwner provider, boolean enforceMainThread) {
+        mFlowlyOwner = new WeakReference<>(provider);
         mState = State.INITIALIZED;
         mEnforceMainThread = enforceMainThread;
     }
@@ -110,7 +110,7 @@ public class LifecycleRegistry extends Lifecycle {
      *
      * @param event The event that was received
      */
-    public void handleLifecycleEvent(@NonNull Lifecycle.Event event) {
+    public void handleLifecycleEvent(@NonNull Flowly.Event event) {
         enforceMainThreadIfNeeded("handleLifecycleEvent");
         moveToState(event.getTargetState());
     }
@@ -123,22 +123,22 @@ public class LifecycleRegistry extends Lifecycle {
      *
      * @param event The event that was received
      */
-    public void dispatchEvent(@NonNull Lifecycle.Event event) {
+    public void dispatchEvent(@NonNull Flowly.Event event) {
         dispatchEvent(event, 0);
     }
 
-    public void dispatchEvent(@NonNull Lifecycle.Event event, @Nullable Object... arg) {
+    public void dispatchEvent(@NonNull Flowly.Event event, @Nullable Object... arg) {
         enforceMainThreadIfNeeded("handleLifecycleEvent");
-        LifecycleOwner lifecycleOwner = mLifecycleOwner.get();
-        if (lifecycleOwner == null) {
+        FlowlyOwner flowlyOwner = mFlowlyOwner.get();
+        if (flowlyOwner == null) {
             return;
         }
-        Iterator<Map.Entry<LifecycleObserver, ObserverWithState>> descendingIterator =
+        Iterator<Map.Entry<FlowlyObserver, ObserverWithState>> descendingIterator =
                 mObserverMap.descendingIterator();
         while (descendingIterator.hasNext()) {
-            Map.Entry<LifecycleObserver, ObserverWithState> entry = descendingIterator.next();
+            Map.Entry<FlowlyObserver, ObserverWithState> entry = descendingIterator.next();
             ObserverWithState observer = entry.getValue();
-            observer.dispatchEvent(lifecycleOwner, event, arg);
+            observer.dispatchEvent(flowlyOwner, event, arg);
         }
     }
 
@@ -166,8 +166,8 @@ public class LifecycleRegistry extends Lifecycle {
         return eldestObserverState == newestObserverState && mState == newestObserverState;
     }
 
-    private State calculateTargetState(LifecycleObserver observer) {
-        Map.Entry<LifecycleObserver, ObserverWithState> previous = mObserverMap.ceil(observer);
+    private State calculateTargetState(FlowlyObserver observer) {
+        Map.Entry<FlowlyObserver, ObserverWithState> previous = mObserverMap.ceil(observer);
 
         State siblingState = previous != null ? previous.getValue().mState : null;
         State parentState = !mParentStates.isEmpty() ? mParentStates.get(mParentStates.size() - 1)
@@ -176,7 +176,7 @@ public class LifecycleRegistry extends Lifecycle {
     }
 
     @Override
-    public void addObserver(@NonNull LifecycleObserver observer) {
+    public void addObserver(@NonNull FlowlyObserver observer) {
         enforceMainThreadIfNeeded("addObserver");
         State initialState = mState == State.DESTROYED ? State.DESTROYED : State.INITIALIZED;
         ObserverWithState statefulObserver = new ObserverWithState(observer, initialState);
@@ -185,8 +185,8 @@ public class LifecycleRegistry extends Lifecycle {
         if (previous != null) {
             return;
         }
-        LifecycleOwner lifecycleOwner = mLifecycleOwner.get();
-        if (lifecycleOwner == null) {
+        FlowlyOwner flowlyOwner = mFlowlyOwner.get();
+        if (flowlyOwner == null) {
             // it is null we should be destroyed. Fallback quickly
             return;
         }
@@ -201,7 +201,7 @@ public class LifecycleRegistry extends Lifecycle {
             if (event == null) {
                 throw new IllegalStateException("no event up from " + statefulObserver.mState);
             }
-            statefulObserver.dispatchLifecycleEvent(lifecycleOwner, event);
+            statefulObserver.dispatchLifecycleEvent(flowlyOwner, event);
             popParentState();
             // mState / subling may have been changed recalculate
             targetState = calculateTargetState(observer);
@@ -223,7 +223,7 @@ public class LifecycleRegistry extends Lifecycle {
     }
 
     @Override
-    public void removeObserver(@NonNull LifecycleObserver observer) {
+    public void removeObserver(@NonNull FlowlyObserver observer) {
         enforceMainThreadIfNeeded("removeObserver");
         // we consciously decided not to send destruction events here in opposition to addObserver.
         // Our reasons for that:
@@ -257,11 +257,11 @@ public class LifecycleRegistry extends Lifecycle {
         return mState;
     }
 
-    private void forwardPass(LifecycleOwner lifecycleOwner) {
-        Iterator<Map.Entry<LifecycleObserver, ObserverWithState>> ascendingIterator =
+    private void forwardPass(FlowlyOwner flowlyOwner) {
+        Iterator<Map.Entry<FlowlyObserver, ObserverWithState>> ascendingIterator =
                 mObserverMap.iteratorWithAdditions();
         while (ascendingIterator.hasNext() && !mNewEventOccurred) {
-            Map.Entry<LifecycleObserver, ObserverWithState> entry = ascendingIterator.next();
+            Map.Entry<FlowlyObserver, ObserverWithState> entry = ascendingIterator.next();
             ObserverWithState observer = entry.getValue();
             while ((observer.mState.compareTo(mState) < 0 && !mNewEventOccurred
                     && mObserverMap.contains(entry.getKey()))) {
@@ -270,17 +270,17 @@ public class LifecycleRegistry extends Lifecycle {
                 if (event == null) {
                     throw new IllegalStateException("no event up from " + observer.mState);
                 }
-                observer.dispatchLifecycleEvent(lifecycleOwner, event);
+                observer.dispatchLifecycleEvent(flowlyOwner, event);
                 popParentState();
             }
         }
     }
 
-    private void backwardPass(LifecycleOwner lifecycleOwner) {
-        Iterator<Map.Entry<LifecycleObserver, ObserverWithState>> descendingIterator =
+    private void backwardPass(FlowlyOwner flowlyOwner) {
+        Iterator<Map.Entry<FlowlyObserver, ObserverWithState>> descendingIterator =
                 mObserverMap.descendingIterator();
         while (descendingIterator.hasNext() && !mNewEventOccurred) {
-            Map.Entry<LifecycleObserver, ObserverWithState> entry = descendingIterator.next();
+            Map.Entry<FlowlyObserver, ObserverWithState> entry = descendingIterator.next();
             ObserverWithState observer = entry.getValue();
             while ((observer.mState.compareTo(mState) > 0 && !mNewEventOccurred
                     && mObserverMap.contains(entry.getKey()))) {
@@ -289,7 +289,7 @@ public class LifecycleRegistry extends Lifecycle {
                     throw new IllegalStateException("no event down from " + observer.mState);
                 }
                 pushParentState(event.getTargetState());
-                observer.dispatchLifecycleEvent(lifecycleOwner, event);
+                observer.dispatchLifecycleEvent(flowlyOwner, event);
                 popParentState();
             }
         }
@@ -298,21 +298,21 @@ public class LifecycleRegistry extends Lifecycle {
     // happens only on the top of stack (never in reentrance),
     // so it doesn't have to take in account parents
     private void sync() {
-        LifecycleOwner lifecycleOwner = mLifecycleOwner.get();
-        if (lifecycleOwner == null) {
-            throw new IllegalStateException("LifecycleOwner of this LifecycleRegistry is already"
+        FlowlyOwner flowlyOwner = mFlowlyOwner.get();
+        if (flowlyOwner == null) {
+            throw new IllegalStateException("FlowlyOwner of this LifecycleRegistry is already"
                     + "garbage collected. It is too late to change flowly state.");
         }
         while (!isSynced()) {
             mNewEventOccurred = false;
             // no need to check eldest for nullability, because isSynced does it for us.
             if (mState.compareTo(mObserverMap.eldest().getValue().mState) < 0) {
-                backwardPass(lifecycleOwner);
+                backwardPass(flowlyOwner);
             }
-            Map.Entry<LifecycleObserver, ObserverWithState> newest = mObserverMap.newest();
+            Map.Entry<FlowlyObserver, ObserverWithState> newest = mObserverMap.newest();
             if (!mNewEventOccurred && newest != null
                     && mState.compareTo(newest.getValue().mState) > 0) {
-                forwardPass(lifecycleOwner);
+                forwardPass(flowlyOwner);
             }
         }
         mNewEventOccurred = false;
@@ -339,8 +339,8 @@ public class LifecycleRegistry extends Lifecycle {
      */
     @VisibleForTesting
     @NonNull
-    public static LifecycleRegistry createUnsafe(@NonNull LifecycleOwner owner) {
-        return new LifecycleRegistry(owner, false);
+    public static FlowlyRegistry createUnsafe(@NonNull FlowlyOwner owner) {
+        return new FlowlyRegistry(owner, false);
     }
 
     static State min(@NonNull State state1, @Nullable State state2) {
@@ -349,18 +349,18 @@ public class LifecycleRegistry extends Lifecycle {
 
     static class ObserverWithState {
         State mState;
-        LifecycleEventObserver mLifecycleObserver;
+        FlowlyEventObserver mLifecycleObserver;
 
-        ObserverWithState(LifecycleObserver observer, State initialState) {
-            mLifecycleObserver = Lifecycling.lifecycleEventObserver(observer);
+        ObserverWithState(FlowlyObserver observer, State initialState) {
+            mLifecycleObserver = Flowlying.lifecycleEventObserver(observer);
             mState = initialState;
         }
 
-        void dispatchEvent(LifecycleOwner owner, Event event, @Nullable Object... arg) {
+        void dispatchEvent(FlowlyOwner owner, Event event, @Nullable Object... arg) {
             mLifecycleObserver.onStateChanged(owner, event, arg);
         }
 
-        void dispatchLifecycleEvent(LifecycleOwner owner, Event event) {
+        void dispatchLifecycleEvent(FlowlyOwner owner, Event event) {
             State newState = event.getTargetState();
             mState = min(mState, newState);
             mLifecycleObserver.onStateChanged(owner, event);
