@@ -9,11 +9,11 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
         }
 
         releaseDebuggable {
-            minifyEnabled true
+            minifyEnabled false
             debuggable true
         }
 
