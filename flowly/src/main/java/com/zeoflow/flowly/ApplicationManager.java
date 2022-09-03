@@ -42,7 +42,6 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
     private WeakReference<FragmentManager> mFragmentManager;
 
     private boolean firstLaunch = true;
-    private long startUpTime = 0;
 
     protected ApplicationManager() {
 
@@ -138,7 +137,6 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
             compatActivity = new WeakReference<>((AppCompatActivity) activity);
             mFragmentManager = new WeakReference<>(((AppCompatActivity) activity).getSupportFragmentManager());
         }
-        startUpTime = System.currentTimeMillis();
     }
 
     @Override
@@ -171,7 +169,6 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
             compatActivity = new WeakReference<>((AppCompatActivity) activity);
             mFragmentManager = new WeakReference<>(((AppCompatActivity) activity).getSupportFragmentManager());
         }
-        startUpTime = 0;
     }
 
     @Override
