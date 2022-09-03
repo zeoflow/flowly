@@ -1,18 +1,15 @@
 package com.zeoowl.books;
 
 import android.app.Application;
-import android.content.Context;
 
-import com.zeoflow.flowly.ProcessFlowlyOwner;
+import androidx.lifecycle.ProcessLifecycleOwner;
+
+import com.zeoflow.flowly.ApplicationManager;
 
 public class App extends Application {
 
     public App() {
-        ProcessFlowlyOwner.addObserver(AppManager.getInstance());
-    }
-
-    @Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
+        ProcessLifecycleOwner.get().getLifecycle().addObserver(AppManager.getInstance());
+        ApplicationManager.addObserver(AppManager.getInstance());
     }
 }
