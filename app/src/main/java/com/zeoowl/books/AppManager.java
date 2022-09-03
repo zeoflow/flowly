@@ -2,11 +2,11 @@ package com.zeoowl.books;
 
 import android.util.Log;
 
-import com.zeoflow.flowly.Flowly;
-import com.zeoflow.flowly.FlowlyObserver;
-import com.zeoflow.flowly.OnFlowlyEvent;
+import androidx.lifecycle.DefaultLifecycleObserver;
 
-public class AppManager implements FlowlyObserver {
+import com.zeoflow.flowly.ApplicationObserver;
+
+public class AppManager implements DefaultLifecycleObserver, ApplicationObserver {
 
     protected AppManager() {
 
@@ -16,28 +16,8 @@ public class AppManager implements FlowlyObserver {
         return new AppManager();
     }
 
-    @OnFlowlyEvent(Flowly.Event.ON_APPLICATION_CREATED)
-    public void onAppStartUp() {
-
-    }
-
-    @OnFlowlyEvent(Flowly.Event.ON_APPLICATION_STARTED)
-    public void onStart() {
-        Log.d("AppManager", "onStart");
-    }
-
-    @OnFlowlyEvent(Flowly.Event.ON_ACTIVITY_CREATED)
-    public void onActivityCreated() {
-        Log.d("AppManager", "onActivityCreated");
-    }
-
-    @OnFlowlyEvent(Flowly.Event.ON_ACTIVITY_PAUSED)
-    public void onActivityPaused() {
-        Log.d("AppManager", "onActivityPaused");
-    }
-
-    @OnFlowlyEvent(Flowly.Event.ON_ACTIVITY_RESUMED)
-    public void onActivityResumed() {
-        Log.d("AppManager", "onActivityResumed");
+    @Override
+    public void onApplicationCreate() {
+        Log.d("AppManager", "onAppCreate");
     }
 }

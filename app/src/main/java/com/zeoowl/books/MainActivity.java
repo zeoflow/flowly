@@ -1,21 +1,18 @@
 package com.zeoowl.books;
 
+import android.os.Bundle;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
-import android.os.Bundle;
-import android.util.Log;
-
 import com.zeoflow.flowly.ApplicationManager;
-import com.zeoflow.flowly.DefaultFlowlyObserver;
-import com.zeoflow.flowly.FlowlyObserver;
-import com.zeoflow.flowly.FlowlyOwner;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static String TAG = "MainActivity";
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
