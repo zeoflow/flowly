@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.GuardedBy;
 import androidx.annotation.NonNull;
@@ -108,16 +107,16 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
 
     @Override
     public void onActivityPreCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-        Log.d("AppManager", "onActivityPreCreated " + activity.getClass());
+        if (lastActivity == null) {
+            lastActivity = new WeakReference<>(activity);
+        } else if (currentActivity.get() != null && currentActivity != lastActivity) {
+            lastActivity = new WeakReference<>(currentActivity.get());
+        }
+        currentActivity = new WeakReference<>(activity);
     }
 
     @Override
     public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-        Log.d("AppManager", "onActivityCreated " + activity.getClass());
-        if (currentActivity == null) {
-            lastActivity = new WeakReference<>(activity);
-            currentActivity = new WeakReference<>(activity);
-        }
         if (activity instanceof AppCompatActivity) {
             mFragmentManager = new WeakReference<>(((AppCompatActivity) activity).getSupportFragmentManager());
         }
