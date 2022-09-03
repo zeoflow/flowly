@@ -12,13 +12,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.DefaultLifecycleObserver;
-import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.OnLifecycleEvent;
 import androidx.lifecycle.ProcessLifecycleOwner;
 import androidx.lifecycle.ViewModelStore;
 import androidx.lifecycle.ViewModelStoreOwner;
-
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -38,7 +35,6 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
 
     private WeakReference<Activity> currentActivity;
     private WeakReference<Activity> lastActivity;
-    private WeakReference<AppCompatActivity> compatActivity;
     private WeakReference<FragmentManager> mFragmentManager;
 
     private boolean firstLaunch = true;
@@ -67,23 +63,20 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
     @NonNull
     public static Activity getActivity() {
         return getInstance().currentActivity != null ?
-                getInstance().currentActivity.get() : getInstance().lastActivity.get();
+                getInstance().currentActivity.get() :
+                getInstance().lastActivity.get();
     }
 
     @Nullable
     public static AppCompatActivity getCompatActivity() {
-        if (getInstance().compatActivity != null ) {
-            return getInstance().compatActivity.get();
+        if (getInstance().currentActivity != null) {
+            if (getInstance().currentActivity.get() instanceof AppCompatActivity) {
+                return (AppCompatActivity) getInstance().currentActivity.get();
+            } else {
+                return null;
+            }
         }
         return null;
-    }
-
-    @Nullable
-    public static Activity getBaseActivity() {
-        if (getCompatActivity() != null) {
-            return getCompatActivity();
-        }
-        return getActivity();
     }
 
     @NonNull
@@ -108,14 +101,6 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
         return null;
     }
 
-    @Nullable
-    public static LifecycleOwner getFlowlyOwner() {
-        if (getActivity() instanceof LifecycleOwner) {
-            return (LifecycleOwner) getActivity();
-        }
-        return null;
-    }
-
     @NonNull
     public static FragmentManager getFragmentManager() {
         return getInstance().mFragmentManager.get();
@@ -134,7 +119,6 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
             currentActivity = new WeakReference<>(activity);
         }
         if (activity instanceof AppCompatActivity) {
-            compatActivity = new WeakReference<>((AppCompatActivity) activity);
             mFragmentManager = new WeakReference<>(((AppCompatActivity) activity).getSupportFragmentManager());
         }
     }
@@ -166,7 +150,6 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
             activitiesCreated.add(activity.getClass().getName());
         }
         if (activity instanceof AppCompatActivity) {
-            compatActivity = new WeakReference<>((AppCompatActivity) activity);
             mFragmentManager = new WeakReference<>(((AppCompatActivity) activity).getSupportFragmentManager());
         }
     }
@@ -223,7 +206,6 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
     public void onActivityDestroyed(@NonNull Activity activity) {
         currentActivity = null;
         activitiesCreated.remove(activity.getClass().getName());
-        compatActivity = null;
     }
 
     @Override
@@ -244,7 +226,7 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
     public void onResume(@NonNull LifecycleOwner owner) {
         DefaultLifecycleObserver.super.onResume(owner);
         if (firstLaunch) {
-            for (ApplicationObserver observers: mApplicationObservers.values()) {
+            for (ApplicationObserver observers : mApplicationObservers.values()) {
                 observers.onApplicationCreate();
             }
             firstLaunch = false;
