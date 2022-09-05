@@ -16,5 +16,6 @@ dependencyResolutionManagement {
 rootProject.name = "Flowly"
 
 include ':app'
+include ':app-kotlin'
 
 include ':flowly'
