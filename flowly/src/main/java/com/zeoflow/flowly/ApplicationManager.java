@@ -109,7 +109,7 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
     public void onActivityPreCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
         if (lastActivity == null) {
             lastActivity = new WeakReference<>(activity);
-        } else if (currentActivity.get() != null && currentActivity != lastActivity) {
+        } else if (currentActivity != lastActivity && currentActivity != null) {
             lastActivity = new WeakReference<>(currentActivity.get());
         }
         currentActivity = new WeakReference<>(activity);
