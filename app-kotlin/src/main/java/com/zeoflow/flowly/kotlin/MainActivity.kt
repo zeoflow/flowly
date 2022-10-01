@@ -8,6 +8,7 @@ import android.widget.Toast
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.zeoflow.flowly.ApplicationManager
 
 const val AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
 
@@ -28,6 +29,8 @@ class MainActivity : AppCompatActivity() {
         MobileAds.initialize(this) {}
 
         loadAd()
+
+        ApplicationManager.getThemedContext()
     }
 
     private fun loadAd() {
