@@ -3,6 +3,7 @@ package com.zeoflow.flowly;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.GuardedBy;
@@ -19,6 +20,7 @@ import androidx.lifecycle.ViewModelStoreOwner;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.WeakHashMap;
 
 @SuppressWarnings("unused")
@@ -32,6 +34,7 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
     private final List<String> activitiesCreated = new ArrayList<>();
     private final WeakHashMap<String, ApplicationObserver> mApplicationObservers = new WeakHashMap<>();
 
+    private WeakReference<Context> themedContext;
     private WeakReference<Activity> currentActivity;
     private WeakReference<Activity> lastActivity;
     private WeakReference<FragmentManager> mFragmentManager;
@@ -64,6 +67,11 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
         return getInstance().currentActivity != null ?
                 getInstance().currentActivity.get() :
                 getInstance().lastActivity.get();
+    }
+
+    @NonNull
+    public static Context getThemedContext() {
+        return getInstance().themedContext.get();
     }
 
     @Nullable
@@ -107,6 +115,10 @@ public class ApplicationManager implements Application.ActivityLifecycleCallback
 
     @Override
     public void onActivityPreCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
+        String canonicalName = activity.getClass().getCanonicalName();
+        if (!Objects.equals(canonicalName, "com.google.android.gms.ads.AdActivity")) {
+            themedContext = new WeakReference<>(activity);
+        }
         if (lastActivity == null) {
             lastActivity = new WeakReference<>(activity);
         } else if (currentActivity != lastActivity && currentActivity != null) {
